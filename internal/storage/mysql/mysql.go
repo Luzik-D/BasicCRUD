@@ -24,7 +24,7 @@ func New() (*Storage, error) {
 
 	q, err := db.Prepare(`
 	CREATE TABLE IF NOT EXISTS Book (
-		id INT PRIMARY KEY,
+		id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
 		title VARCHAR(50) NOT NULL,
 		author VARCHAR(30) NOT NULL
 	);`)
@@ -62,4 +62,30 @@ func (s *Storage) GetAllBooks() ([]storage.Book, error) {
 	}
 
 	return books, nil
+}
+
+func (s *Storage) AddBook(b storage.Book) error {
+	q, err := s.db.Prepare("INSERT INTO Book (title, author) VALUES (?, ?)")
+	if err != nil {
+		return fmt.Errorf("mysql AddBook: %s", err)
+	}
+
+	_, qerr := q.Exec(b.Title, b.Author)
+	if qerr != nil {
+		return fmt.Errorf("mysql AddBook: %s", qerr)
+	}
+
+	return nil
+}
+
+func (s *Storage) DeleteBookById(id int) error {
+	return nil
+}
+
+func (s *Storage) GetBookByTitle(title string) (storage.Book, error) {
+	return storage.Book{}, nil
+}
+
+func (s *Storage) GetBookByAuthor(author string) (storage.Book, error) {
+	return storage.Book{}, nil
 }

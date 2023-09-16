@@ -5,6 +5,7 @@ import (
 	"log"
 
 	".github.com/Luzik-D/BasicCRUD/internal/config"
+	".github.com/Luzik-D/BasicCRUD/internal/storage"
 	".github.com/Luzik-D/BasicCRUD/internal/storage/mysql"
 )
 
@@ -22,12 +23,17 @@ func main() {
 	fmt.Println(cfg)
 
 	// init storage (db connection)
-	storage, err := mysql.New()
+	st, err := mysql.New()
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	res, _ := storage.GetAllBooks()
+	b := storage.Book{Title: "b", Author: "a"}
+	qerr := st.AddBook(b)
+	if qerr != nil {
+		fmt.Printf("failed to add the book: %s\n", qerr)
+	}
+	res, _ := st.GetAllBooks()
 	fmt.Println(res)
 
 	// init http server

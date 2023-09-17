@@ -116,10 +116,12 @@ func (s *Storage) GetBookById(id int) (storage.Book, error) {
 	return book, nil
 }
 
-func (s *Storage) GetBookByTitle(title string) (storage.Book, error) {
-	return storage.Book{}, nil
-}
+func (s *Storage) UpdateBookWithId(id int, changes storage.Book) error {
+	fmt.Printf("CHANGES: %d, %s, %s\n", id, changes.Title, changes.Author)
+	_, err := s.db.Query("UPDATE Book SET title = ?, author = ? WHERE id = ?", changes.Title, changes.Author, id)
+	if err != nil {
+		return fmt.Errorf("mysql UpdateBookWithId error: %s", err)
+	}
 
-func (s *Storage) GetBookByAuthor(author string) (storage.Book, error) {
-	return storage.Book{}, nil
+	return nil
 }

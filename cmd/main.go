@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	".github.com/Luzik-D/BasicCRUD/internal/config"
-	".github.com/Luzik-D/BasicCRUD/internal/storage"
+	".github.com/Luzik-D/BasicCRUD/internal/http-server/handlers"
 	".github.com/Luzik-D/BasicCRUD/internal/storage/mysql"
 )
 
@@ -28,13 +29,15 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	b := storage.Book{Title: "b", Author: "a"}
-	qerr := st.AddBook(b)
-	if qerr != nil {
-		fmt.Printf("failed to add the book: %s\n", qerr)
-	}
-	res, _ := st.GetAllBooks()
+	res, _ := st.GetBooks()
 	fmt.Println(res)
 
 	// init http server
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", handlers.Greeting)
+	mux.HandleFunc("/books", handlers.HandleBooks(st))
+	mux.HandleFunc("/books/", handlers.HandleBook(st))
+
+	logger.Fatal(http.ListenAndServe(cfg.Address, mux))
 }

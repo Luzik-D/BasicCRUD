@@ -15,20 +15,40 @@ type BookHandler interface {
 	GetBooks() ([]storage.Book, error)
 	GetBookById(id int) (storage.Book, error)
 	UpdateBookWithId(id int, changes storage.Book) error
+	AddBook(b storage.Book) error
+	DeleteBookById(id int) error
 }
 
 func Greeting(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello world!"))
 }
 
-func HandleBooks(storage BookHandler) http.HandlerFunc {
+func HandleBooks(stor BookHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		books, err := storage.GetBooks()
-		if err != nil {
-			panic(err)
-		}
+		switch r.Method {
+		case "GET":
+			books, err := stor.GetBooks()
+			if err != nil {
+				panic(err)
+			}
 
-		fmt.Println(books)
+			fmt.Println(books)
+		case "POST":
+			var book storage.Book
+			err := json.NewDecoder(r.Body).Decode(&book)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			err = stor.AddBook(book)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			w.WriteHeader(http.StatusOK)
+		default:
+			w.WriteHeader(http.StatusBadRequest)
+		}
 	}
 }
 
@@ -75,6 +95,12 @@ func HandleBook(stor BookHandler) http.HandlerFunc {
 			if qerr != nil {
 				fmt.Println(err)
 				return
+			}
+			w.Write([]byte("ok"))
+		case "DELETE":
+			err := stor.DeleteBookById(idVal)
+			if err != nil {
+				fmt.Println(err)
 			}
 			w.Write([]byte("ok"))
 		default:

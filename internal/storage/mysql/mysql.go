@@ -41,7 +41,7 @@ func New() (*Storage, error) {
 	return &Storage{db}, nil
 }
 
-func (s *Storage) GetAllBooks() ([]storage.Book, error) {
+func (s *Storage) GetBooks() ([]storage.Book, error) {
 	q, err := s.db.Query("SELECT * FROM Book")
 
 	if err != nil {
@@ -79,7 +79,40 @@ func (s *Storage) AddBook(b storage.Book) error {
 }
 
 func (s *Storage) DeleteBookById(id int) error {
+	q, err := s.db.Prepare("DELETE FROM Book WHERE id = ?")
+	if err != nil {
+		return fmt.Errorf("mysql DeleteBookById: %s", err)
+	}
+
+	_, qerr := q.Exec(id)
+	if qerr != nil {
+		return fmt.Errorf("mysql DeleteBookById: %s", qerr)
+	}
+
 	return nil
+}
+
+func (s *Storage) GetBookById(id int) (storage.Book, error) {
+	q, err := s.db.Query("SELECT * FROM Book WHERE id = ?", id)
+	if err != nil {
+		return storage.Book{}, fmt.Errorf("mysql GetBookById: %s", err)
+	}
+
+	fmt.Println("id ", id)
+	var book storage.Book
+
+	var qerr error
+	if q.Next() {
+		qerr = q.Scan(&book.Id, &book.Title, &book.Author)
+	} else {
+		return storage.Book{}, fmt.Errorf("mysql GetBookById: %s", qerr)
+	}
+
+	if qerr != nil {
+		return storage.Book{}, fmt.Errorf("mysql GetBookById: %s", qerr)
+	}
+
+	return book, nil
 }
 
 func (s *Storage) GetBookByTitle(title string) (storage.Book, error) {

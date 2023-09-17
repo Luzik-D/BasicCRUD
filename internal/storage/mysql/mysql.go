@@ -16,6 +16,7 @@ type Storage struct {
 // todo: add secure db opening
 // todo: add indexes
 // todo: add connection pool
+// todo:
 func New() (*Storage, error) {
 	db, err := sql.Open("mysql", "sunrise:141018@/BasicCRUD")
 	if err != nil {

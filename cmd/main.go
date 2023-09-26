@@ -7,7 +7,7 @@ import (
 
 	".github.com/Luzik-D/BasicCRUD/internal/config"
 	".github.com/Luzik-D/BasicCRUD/internal/http-server/handlers"
-	".github.com/Luzik-D/BasicCRUD/internal/storage/map_storage"
+	".github.com/Luzik-D/BasicCRUD/internal/storage/mysql"
 )
 
 func main() {
@@ -24,8 +24,8 @@ func main() {
 	fmt.Println(cfg)
 
 	// init storage (db connection)
-	//st, err := mysql.New()
-	st, err := map_storage.New()
+	st, err := mysql.New()
+	//st, err := map_storage.New()
 	if err != nil {
 		logger.Fatal(err)
 	}

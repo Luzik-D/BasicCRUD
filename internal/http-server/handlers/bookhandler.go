@@ -23,6 +23,22 @@ func Greeting(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello world!"))
 }
 
+func validatePOST(b storage.Book) error {
+	if b.Title == "" || b.Author == "" {
+		return fmt.Errorf("Incorrect POST request body")
+	}
+
+	return nil
+}
+
+func validatePUT(b storage.Book) error {
+	if b.Title == "" || b.Author == "" {
+		return fmt.Errorf("Incorrect PUT request body")
+	}
+
+	return nil
+}
+
 func HandleBooks(stor BookHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -35,14 +51,25 @@ func HandleBooks(stor BookHandler) http.HandlerFunc {
 			fmt.Println(books)
 		case "POST":
 			var book storage.Book
+			// decode json
 			err := json.NewDecoder(r.Body).Decode(&book)
 			if err != nil {
 				fmt.Println(err)
+				return
 			}
 
+			// validate req
+			err = validatePOST(book)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			// add to storage
 			err = stor.AddBook(book)
 			if err != nil {
 				fmt.Println(err)
+				return
 			}
 
 			w.WriteHeader(http.StatusOK)
@@ -90,6 +117,13 @@ func HandleBook(stor BookHandler) http.HandlerFunc {
 				fmt.Println(err)
 				return
 			}
+
+			err = validatePUT(b)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
 			fmt.Println("Parse body from PUT req ", b)
 			qerr := stor.UpdateBookWithId(idVal, b)
 			if qerr != nil {

@@ -25,7 +25,7 @@ func Greeting(w http.ResponseWriter, r *http.Request) {
 
 func validatePOST(b storage.Book) error {
 	if b.Title == "" || b.Author == "" {
-		return fmt.Errorf("Incorrect POST request body")
+		return ErrInvalidPOSTRequest
 	}
 
 	return nil
@@ -33,7 +33,7 @@ func validatePOST(b storage.Book) error {
 
 func validatePUT(b storage.Book) error {
 	if b.Title == "" || b.Author == "" {
-		return fmt.Errorf("Incorrect PUT request body")
+		return ErrInvalidPUTRequest
 	}
 
 	return nil

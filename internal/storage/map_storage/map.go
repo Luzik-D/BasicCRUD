@@ -63,6 +63,20 @@ func (s *Storage) UpdateBookWithId(id int, changes storage.Book) error {
 		return fmt.Errorf("Book with id %d doesn't exist", id)
 	}
 
+	book.Author = changes.Author
+	book.Title = changes.Title
+
+	s.st[id] = book
+
+	return nil
+}
+
+func (s *Storage) PatchBookWithId(id int, changes storage.Book) error {
+	book, ok := s.st[id]
+	if !ok {
+		return fmt.Errorf("Book with id %d doesn't exist", id)
+	}
+
 	if changes.Author != "" {
 		book.Author = changes.Author
 	}

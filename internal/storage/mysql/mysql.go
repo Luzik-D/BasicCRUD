@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	".github.com/Luzik-D/BasicCRUD/internal/storage"
@@ -124,4 +125,8 @@ func (s *Storage) UpdateBookWithId(id int, changes storage.Book) error {
 	}
 
 	return nil
+}
+
+func (s *Storage) PatchBookWithId(id int, changes storage.Book) error {
+	return errors.New("Not implemented")
 }

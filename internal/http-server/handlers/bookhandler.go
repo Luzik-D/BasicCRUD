@@ -47,6 +47,7 @@ func validatePATCH(b storage.Book) error {
 	return nil
 }
 
+// Handler on "http://localhost:{PORT}/books"
 func HandleBooks(stor BookHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -85,6 +86,7 @@ func HandleBooks(stor BookHandler) http.HandlerFunc {
 	}
 }
 
+// Handle on "http://localhost:{PORT}/books/{id}"
 func HandleBook(stor BookHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := strings.TrimPrefix(r.URL.Path, "/books/")
@@ -99,70 +101,90 @@ func HandleBook(stor BookHandler) http.HandlerFunc {
 			log.Println("Failed to convert id from path")
 			return
 		}
-		book, err := stor.GetBookById(idVal)
-		if err != nil {
-			log.Println("Failed to get book from storage")
-			return
-		}
 
 		switch r.Method {
 		case "GET":
-			js, err := json.Marshal(book)
-			if err != nil {
-				log.Println("Failed to marshall the book")
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(js)
+			getBookHandler(idVal, stor, w)
 		case "PUT":
-			var b storage.Book
-			err := json.NewDecoder(r.Body).Decode(&b)
-			if err != nil {
-				log.Println("Failed to decode request body")
-				return
-			}
-
-			err = validatePUT(b)
-			if err != nil {
-				log.Println("Invalid PUT request")
-				return
-			}
-
-			qerr := stor.UpdateBookWithId(idVal, b)
-			if qerr != nil {
-				log.Println("Failed to update the book")
-				return
-			}
-			w.Write([]byte("ok"))
+			putBookHandler(idVal, stor, r)
 		case "PATCH":
-			var b storage.Book
-			err := json.NewDecoder(r.Body).Decode(&b)
-			if err != nil {
-				log.Println("Failed to decode request body")
-				return
-			}
-
-			err = validatePATCH(b)
-			if err != nil {
-				log.Println("Invalid PATCH request")
-				return
-			}
-
-			qerr := stor.PatchBookWithId(idVal, b)
-			if qerr != nil {
-				log.Println("Failed to patch the book")
-				return
-			}
-			w.Write([]byte("ok"))
+			patchBookHandler(idVal, stor, r)
 		case "DELETE":
-			err := stor.DeleteBookById(idVal)
-			if err != nil {
-				log.Println("Failed to delete the book")
-			}
-			w.Write([]byte("ok"))
+			deleteBookHandler(idVal, stor)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 		}
 
 	}
+}
+
+func getBookHandler(id int, st BookHandler, w http.ResponseWriter) error {
+	book, err := st.GetBookById(id)
+	if err != nil {
+		log.Println("Failed to get book from storage")
+		return err
+	}
+
+	js, err := json.Marshal(book)
+	if err != nil {
+		log.Println("Failed to marshall book")
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+	return nil
+}
+
+func putBookHandler(id int, st BookHandler, r *http.Request) error {
+	var b storage.Book
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		log.Println("Failed to decode request")
+		return err
+	}
+
+	err = validatePUT(b)
+	if err != nil {
+		log.Println("Invalid PUT request")
+	}
+
+	err = st.UpdateBookWithId(id, b)
+	if err != nil {
+		log.Println("Failed to update book")
+		return err
+	}
+
+	return nil
+}
+
+func patchBookHandler(id int, st BookHandler, r *http.Request) error {
+	var b storage.Book
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		log.Println("Failed to decode request")
+		return err
+	}
+
+	err = validatePATCH(b)
+	if err != nil {
+		log.Println("Invalid PATCH request")
+	}
+
+	err = st.PatchBookWithId(id, b)
+	if err != nil {
+		log.Println("Failed to patch book")
+		return err
+	}
+
+	return nil
+}
+
+func deleteBookHandler(id int, st BookHandler) error {
+	err := st.DeleteBookById(id)
+	if err != nil {
+		log.Println("Failed to delete book")
+	}
+
+	return nil
 }

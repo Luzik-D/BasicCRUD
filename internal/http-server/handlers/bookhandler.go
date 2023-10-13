@@ -169,6 +169,7 @@ func patchBookHandler(id int, st BookHandler, r *http.Request) error {
 	err = validatePATCH(b)
 	if err != nil {
 		log.Println("Invalid PATCH request")
+		return err
 	}
 
 	err = st.PatchBookWithId(id, b)

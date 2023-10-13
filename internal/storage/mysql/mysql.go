@@ -2,8 +2,8 @@ package mysql
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	"strings"
 
 	".github.com/Luzik-D/BasicCRUD/internal/storage"
 
@@ -118,7 +118,6 @@ func (s *Storage) GetBookById(id int) (storage.Book, error) {
 }
 
 func (s *Storage) UpdateBookWithId(id int, changes storage.Book) error {
-	fmt.Printf("CHANGES: %d, %s, %s\n", id, changes.Title, changes.Author)
 	_, err := s.db.Query("UPDATE Book SET title = ?, author = ? WHERE id = ?", changes.Title, changes.Author, id)
 	if err != nil {
 		return fmt.Errorf("mysql UpdateBookWithId error: %s", err)
@@ -128,5 +127,27 @@ func (s *Storage) UpdateBookWithId(id int, changes storage.Book) error {
 }
 
 func (s *Storage) PatchBookWithId(id int, changes storage.Book) error {
-	return errors.New("Not implemented")
+	q := "UPDATE Book SET"
+	updateParts := make([]string, 0)
+	updateArgs := make([]interface{}, 0)
+
+	if changes.Title != "" {
+		updateParts = append(updateParts, " title = ?")
+		updateArgs = append(updateArgs, changes.Title)
+	}
+
+	if changes.Author != "" {
+		updateParts = append(updateParts, " author = ?")
+		updateArgs = append(updateArgs, changes.Author)
+	}
+
+	q += strings.Join(updateParts, ",")
+	q += " WHERE id = ?"
+	updateArgs = append(updateArgs, id)
+
+	_, err := s.db.Query(q, updateArgs...)
+	if err != nil {
+		return fmt.Errorf("Failed to PATCH the book")
+	}
+	return nil
 }

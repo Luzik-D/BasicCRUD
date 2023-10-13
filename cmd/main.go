@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	".github.com/Luzik-D/BasicCRUD/internal/config"
 	".github.com/Luzik-D/BasicCRUD/internal/http-server/handlers"
 	".github.com/Luzik-D/BasicCRUD/internal/storage/mysql"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -34,11 +34,18 @@ func main() {
 	fmt.Println(res)
 
 	// init http server
-	mux := http.NewServeMux()
+	router := gin.New()
+	router.GET("/books", func(c *gin.Context) {
+		handlers.Greeting(c.Writer, c.Request)
+	})
 
-	mux.HandleFunc("/", handlers.Greeting)
-	mux.HandleFunc("/books", handlers.HandleBooks(st))
-	mux.HandleFunc("/books/", handlers.HandleBook(st))
+	// TODO: IMPLEMENT ALL ROUTES AND REPLACE MAIN BRANCH
+	/*router.GET("/books", handlers.ShowBooks(st))
+	router.GET("/books/:id", handlers.ShowBook(st))
+	router.POST("/books", handlers.AddBook(st))
+	router.PUT("/books/:id", handlers.ChangeBook(st))
+	router.PATCH("/books/:id", handlers.PatchBook(st))
+	router.DELETE("/books/:id", handlers.DeleteBook(st))*/
 
-	logger.Fatal(http.ListenAndServe(cfg.Address, mux))
+	logger.Fatal(router.Run(cfg.Address))
 }
